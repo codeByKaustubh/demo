@@ -173,11 +173,9 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
 2. Insert values
 INSERT INTO users (username, email, password_hash, role)
-VALUES ('alice', 'alice@example.com',
-'2b12$ExampleHashForAlice123456789', 'user'), ('bob',
-'bob@example.com', '2b12$ExampleHashForBob1234567890',
-'user'), ('admin','admin@example.com',
-2b12$ExampleHashForAdmin12345678', 'admin');
+VALUES ('alice', 'alice@example.com','2b12$ExampleHashForAlice123456789', 'user'), 
+('bob', 'bob@example.com', '2b12$ExampleHashForBob1234567890', 'user'), 
+('admin','admin@example.com', 2b12$ExampleHashForAdmin12345678', 'admin');
 
 3. show users
 SELECT * FROM users;
