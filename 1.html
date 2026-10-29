@@ -131,16 +131,75 @@
     <hr>
 
     <h1>python programming</h1>
-    <h4>Scans port 1–1024 on your own machine</h4>
+    <a href="scan ports 1-1024.py">scan ports 1-1024</a><br>
+    <a href="Open Ports and Service Names.py">Open Ports and Service Names</a><br>
+    <a href="simple port scanner.py">simple port scanner</a><br>
+    <a href="Detect Suspicious URLs.py">Detect Suspicious URLs</a><br>
+    <a href="Failed Login Attempt Counter.py">Failed Login Attempt Counter</a><br>
+    <a href="Generate a Secure Random Password.py">Generate a Secure Random Password</a><br>
+    <a href="password strength.py">password strength</a>
+
+    <hr>
+
+    <h1>bash & powershell</h1>
+    <h4>BASH</h4>
+    <a href="bash.sh">bash.sh</a>
     <pre>
-import socket
-ip = "192.168.56.1"
-for port in range(1, 1025):
-    s = socket.socket()
-    s.settimeout(0.2)
-    if s.connect_ex((ip, port)) == 0:
-        print("Open Port:", port)
-    s.close()
+        nano bash.sh: paste the code
+        chmod +x bash.sh
+        bash bash.sh
+        put the system's IP to scan
+    </pre>
+    <h4>powershell</h4>
+    <pre>
+        1. Get-Process
+        2. Get-Process | Select-Object Id, ProcessName, CPU, Path
+        3. Get-Process | Where-Object {$_.CPU -gt 100} | Select-Object Id, ProcessName, CPU
+    </pre>
+
+    <hr>
+
+    <h1>SQL and cryptool</h1>
+    <h4>sql injection</h4> <a href="https://sqliteonline.com/">sqliteonline</a>
+    <pre>1. CREATE TABLE
+CREATE TABLE users (
+user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+username TEXT NOT NULL UNIQUE,
+email TEXT NOT NULL UNIQUE,
+password_hash TEXT NOT NULL,
+role TEXT NOT NULL DEFAULT 'user',
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+2. Insert values
+INSERT INTO users (username, email, password_hash, role)
+VALUES ('alice', 'alice@example.com',
+'2b12$ExampleHashForAlice123456789', 'user'), ('bob',
+'bob@example.com', '2b12$ExampleHashForBob1234567890',
+'user'), ('admin','admin@example.com',
+2b12$ExampleHashForAdmin12345678', 'admin');
+
+3. show users
+SELECT * FROM users;
+
+4. Test the security constraints, Try inserting a duplicate username
+INSERT INTO users 
+(username, email, password_hash) 
+VALUES
+('alice', 'newalice@example.com', 'dummyhash');
+
+5. sql injection
+SELECT * FROM users
+WHERE username = '' OR '1'='1' --'
+AND password = '' OR '1'='1' --'
+    </pre>
+
+    <h4>cryptool</h4> <a href="https://www.cryptool.org/en/ct1/downloads/">cryptool</a>
+    <pre>
+1. Create a new file and type a plaintext
+2. Go to “Encrypt/Decrypt” > “Symmetric (modern)” > “RC4” and click on Encrypt
+3. Go to “Encrypt/Decrypt” > “Symmetric (modern)” > “RC4” and click on Decrypt.
+
     </pre>
 </body>
 
