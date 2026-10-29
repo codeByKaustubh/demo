@@ -175,7 +175,7 @@ created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 INSERT INTO users (username, email, password_hash, role)
 VALUES ('alice', 'alice@example.com','2b12$ExampleHashForAlice123456789', 'user'), 
 ('bob', 'bob@example.com', '2b12$ExampleHashForBob1234567890', 'user'), 
-('admin','admin@example.com', 2b12$ExampleHashForAdmin12345678', 'admin')
+('admin','admin@example.com', '2b12$ExampleHashForAdmin12345678', 'admin')
 
 3. show users
 SELECT * FROM users;
@@ -189,7 +189,7 @@ VALUES
 5. sql injection
 SELECT * FROM users
 WHERE username = '' OR '1'='1' --'
-AND password = '' OR '1'='1' --'
+AND password_hash = '' OR '1'='1' --'
     </pre>
 
     <h4>cryptool</h4> <a href="https://www.cryptool.org/en/ct1/downloads/">cryptool</a>
