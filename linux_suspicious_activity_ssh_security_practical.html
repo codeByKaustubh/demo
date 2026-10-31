@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux Suspicious Activity and SSH Security Practical</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #5d687a;
+      --accent: #2457a7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 18px;
+      background: #eef2f7;
+      color: var(--ink);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 960px;
+      margin: auto;
+      padding: 34px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(20, 35, 60, .08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0 0 26px;
+      color: var(--muted);
+    }
+
+    h2 {
+      margin: 28px 0 10px;
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 48px 18px 16px;
+      margin: 10px 0 18px;
+      border-radius: 10px;
+      background: #111827;
+      color: #e5edf8;
+      font: 14px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .code-wrap {
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1;
+      padding: 7px 12px;
+      border: 1px solid #64748b;
+      border-radius: 7px;
+      background: #263449;
+      color: #fff;
+      font: 600 12px system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: #3b4d66;
+    }
+
+    .note {
+      padding: 13px 16px;
+      margin: 16px 0;
+      border-left: 4px solid #c47a19;
+      background: #fff6e7;
+      border-radius: 6px;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      main {
+        box-shadow: none;
+        padding: 0;
+      }
+
+      .copy-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Linux Suspicious Activity and SSH Security</h1>
+    <p class="subtitle">A defensive lab for identifying unexpected accounts, processes, network listeners, and SSH
+      access configuration.</p>
+
+    <h2>Aim</h2>
+    <p>To identify suspicious users, processes, network connections, and SSH configuration on a Linux system.</p>
+
+    <div class="note">
+      <strong>Lab safety warning:</strong> The first section deliberately creates a UID 0 account, which has root-level
+      privileges, and modifies root's SSH authorized-keys file. These are persistence techniques commonly associated
+      with unauthorized access. Run this only in a disposable, isolated virtual machine that you own. Do not run it on
+      your everyday computer or a production system. The sample SSH line shown is not a complete valid public key, but
+      the account creation still grants root-equivalent local access.
+    </div>
+
+    <h2>1. Enter Administrator Mode and Create the Lab Indicators</h2>
+    <p>Enter a root shell:</p>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd1', this)">Copy commands</button>
+      <pre><code id="cmd1">sudo -i</code></pre>
+    </div>
+    <p>In the isolated lab VM only, the following commands create an account with UID 0 and add a sample line to root's
+      SSH authorized-keys file:</p>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd2', this)">Copy commands</button>
+      <pre><code id="cmd2">useradd -u 0 -o -g 0 -M -d /root -s /bin/bash support_linux_attack
+
+mkdir -p /root/.ssh
+echo "ssh-rsa attacker@evil" >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys</code></pre>
+    </div>
+    <p><strong>What these commands do:</strong></p>
+    <ul>
+      <li><code>useradd -u 0 -o</code> creates a user with UID 0 and permits a duplicate UID. UID 0 is the root
+        identity.</li>
+      <li><code>-g 0</code> assigns the account to the root group.</li>
+      <li><code>-M -d /root</code> avoids creating a home directory and sets the home path to <code>/root</code>.</li>
+      <li><code>mkdir -p</code> ensures the SSH directory exists.</li>
+      <li><code>authorized_keys</code> is where SSH public keys permitted to log in are stored.</li>
+      <li><code>chmod 600</code> restricts the file so only its owner can read and write it.</li>
+    </ul>
+
+    <h2>2. Display Configured Linux User Accounts</h2>
+    <p>Display the local account database:</p>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd3', this)">Copy command</button>
+      <pre><code id="cmd3">cat /etc/passwd</code></pre>
+    </div>
+    <p>Look for unfamiliar accounts and especially accounts with UID <code>0</code>. More than one UID 0 account should
+      be investigated.</p>
+
+    <h2>3. Search Running Processes</h2>
+    <p>Search the process list for common shell and network utility names:</p>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd4', this)">Copy command</button>
+      <pre><code id="cmd4">ps aux | grep -E 'nc|bash|sh'</code></pre>
+    </div>
+    <p>Review the full command, process owner, PID, and parent process. A match is not automatically malicious: shells
+      and network tools are also used for legitimate administration.</p>
+
+    <h2>4. Display Active Network Connections and Listening Ports</h2>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd5', this)">Copy command</button>
+      <pre><code id="cmd5">sudo ss -tulpn</code></pre>
+    </div>
+    <p>This displays TCP and UDP sockets, listening ports, and (where permissions allow) the associated process
+      information. Investigate unexpected listening services and unfamiliar remote connections.</p>
+
+    <h2>5. Remove the Lab Account After Testing</h2>
+    <p>The account created in Step 1 is named <code>support_linux_attack</code>. The original removal command used a
+      different name (<code>support_linux</code>), so it would not remove the account created by the practical.</p>
+    <div class="code-wrap">
+      <button class="copy-btn" type="button" onclick="copyCode('cmd6', this)">Copy cleanup commands</button>
+      <pre><code id="cmd6">userdel -f support_linux_attack</code></pre>
+    </div>
+
+    <div class="note">
+      <strong>Important notes</strong>
+      <ul>
+        <li>Do not use <code>userdel -f</code> as a routine cleanup method on a real system. Confirm the account name
+          and investigate any associated processes or files first.</li>
+        <li><code>cat /etc/passwd</code> lists account records, not passwords. Password hashes are generally stored in
+          the protected <code>/etc/shadow</code> file.</li>
+        <li>The process search can return false positives, including the <code>grep</code> command itself. Verify each
+          result before taking action.</li>
+        <li>For a real incident, preserve logs and evidence before deleting accounts or changing SSH files.</li>
+      </ul>
+    </div>
+
+    <footer>
+      Practical outcome: The commands demonstrate how to inspect local accounts, investigate suspicious processes,
+      review listening network services, and identify potentially unauthorized root and SSH access configuration.
+    </footer>
+  </main>
+  <script>
+    async function copyCode(id, button) {
+      const code = document.getElementById(id).innerText;
+      const originalLabel = button.innerText;
+      try {
+        await navigator.clipboard.writeText(code);
+        button.innerText = "Copied!";
+      } catch (error) {
+        const temporary = document.createElement("textarea");
+        temporary.value = code;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "absolute";
+        temporary.style.left = "-9999px";
+        document.body.appendChild(temporary);
+        temporary.select();
+        const copied = document.execCommand("copy");
+        temporary.remove();
+        button.innerText = copied ? "Copied!" : "Copy failed";
+      }
+      window.setTimeout(() => { button.innerText = originalLabel; }, 1800);
+    }
+  </script>
+</body>
+
+</html>
