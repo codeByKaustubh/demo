@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort IDS Installation and Configuration Practical</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #172033;
+            --muted: #5d687a;
+            --accent: #2457a7
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            padding: 32px 18px;
+            background: #eef2f7;
+            color: var(--ink);
+            font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif
+        }
+
+        main {
+            max-width: 960px;
+            margin: auto;
+            padding: 34px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(20, 35, 60, .08)
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            line-height: 1.2
+        }
+
+        .subtitle {
+            margin: 0 0 26px;
+            color: var(--muted)
+        }
+
+        h2 {
+            margin: 28px 0 10px;
+            color: var(--accent);
+            font-size: 1.2rem
+        }
+
+        p {
+            margin: 8px 0
+        }
+
+        pre {
+            overflow-x: auto;
+            padding: 48px 18px 16px;
+            margin: 10px 0 18px;
+            border-radius: 10px;
+            background: #111827;
+            color: #e5edf8;
+            font: 14px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace
+        }
+
+        .code-wrap {
+            position: relative
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            padding: 7px 12px;
+            border: 1px solid #64748b;
+            border-radius: 7px;
+            background: #263449;
+            color: #fff;
+            font: 600 12px system-ui, sans-serif;
+            cursor: pointer
+        }
+
+        .copy-btn:hover {
+            background: #3b4d66
+        }
+
+        .note {
+            padding: 13px 16px;
+            margin: 16px 0;
+            border-left: 4px solid #c47a19;
+            background: #fff6e7;
+            border-radius: 6px
+        }
+
+        footer {
+            margin-top: 28px;
+            color: var(--muted);
+            font-size: .9rem
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0
+            }
+
+            main {
+                box-shadow: none;
+                padding: 0
+            }
+
+            .copy-btn {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Snort IDS Installation and Configuration</h1>
+        <p class="subtitle">Installing Snort on Ubuntu and monitoring network traffic for suspicious activity.</p>
+
+        <h2>Aim</h2>
+        <p>To install and configure the Snort Intrusion Detection System (IDS) and monitor network traffic for
+            suspicious activity.</p>
+
+        <div class="note"><strong>Before you begin:</strong> These instructions are written for the Snort 2.x package
+            commonly provided by Ubuntu's <code>apt</code> repositories. Snort 3 uses different command-line options and
+            configuration conventions. Check your version with <code>snort -V</code> and use the matching documentation
+            if it reports Snort 3.</div>
+
+        <h2>1. Enter Administrator Mode and Update Ubuntu</h2>
+        <p>Open the Ubuntu terminal and enter:</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c1',this)">Copy commands</button>
+            <pre><code id="c1">sudo -i
+apt update
+apt upgrade -y</code></pre>
+        </div>
+        <p><code>sudo -i</code> opens a root shell. The original <code>sudo -I</code> uses an uppercase i and is
+            incorrect; use lowercase <code>-i</code>.</p>
+
+        <h2>2. Display Network Interfaces and IP Addresses</h2>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c2',this)">Copy command</button>
+            <pre><code id="c2">ip a</code></pre>
+        </div>
+        <p>Identify the interface that receives the traffic you want Snort to monitor, such as <code>ens33</code>,
+            <code>enp0s3</code>, or <code>eth0</code>. Record the Ubuntu IP address.
+        </p>
+
+        <h2>3. Install Snort IDS</h2>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c3',this)">Copy commands</button>
+            <pre><code id="c3">apt install snort -y</code></pre>
+        </div>
+        <p>During installation, the package may ask for the network interface or HOME_NET range. Enter the correct
+            values for your lab network. The version command confirms which Snort generation was installed.</p>
+
+        <h2>4. View Network Traffic in Verbose Mode</h2>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c4',this)">Copy command</button>
+            <pre><code id="c4">snort -v</code></pre>
+        </div>
+        <p>This displays packet information in the terminal. It may use the default interface; to select a specific
+            interface in Snort 2, use:</p>
+
+        <h2>5. Open the Snort Configuration File</h2>
+        <p>In a new terminal, open the Snort 2 configuration file:</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c5',this)">Copy command</button>
+            <pre><code id="c5">sudo nano /etc/snort/snort.conf</code></pre>
+        </div>
+        <p>Review the configuration, especially the <code>ipvar HOME_NET</code> setting and the inclusion of local rules
+            (commonly <code>include $RULE_PATH/local.rules</code>). Save changes only when needed.</p>
+
+        <h2>6. Restart Snort and Check Its Service</h2>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c6',this)">Copy commands</button>
+            <pre><code id="c6">sudo systemctl restart snort
+sudo systemctl status snort</code></pre>
+        </div>
+        <p>Some package configurations do not provide an enabled or running systemd service by default. If the service
+            is missing or fails, inspect the error output and validate the installed configuration; you can run Snort
+            manually as shown in Step 8.</p>
+
+        <h2>7. Add Custom Rules to local.rules</h2>
+        <p>Open the local rules file:</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c7',this)">Copy command</button>
+            <pre><code id="c7">sudo nano /etc/snort/rules/local.rules</code></pre>
+        </div>
+        <p>For a controlled lab, the following Snort 2 rules can alert on ICMP echo requests (such as ping), new TCP
+            connection attempts to SSH port 22, and HTTP requests containing <code>/etc/passwd</code> in the URI:</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('rules',this)">Copy rules</button>
+            <pre><code id="rules">alert icmp any any -> any any (msg:"ICMP Connection Attempt"; sid:1000010; rev:1;)
+alert tcp any any -> any 22 (msg:"SSH connection attempt"; sid:100002; rev:1;)
+alert tcp any any -> any 80 (msg:"Command Execution Attempt"; content:"GET"; content:"/etc/passwd";sid:100003; rev:1;)</code></pre>
+        </div>
+        <p>Save the file. These are demonstration alerts, not proof that an attack succeeded. The SSH rule detects an
+            initial TCP SYN to port 22; the HTTP rule detects a matching request only if it is visible to the monitored
+            interface and uses unencrypted HTTP.</p>
+
+        <h2>8. Run Snort with the Main Configuration and Show Alerts</h2>
+        <p>Open a new terminal and run Snort 2 using the main configuration file. Do not pass <code>local.rules</code>
+            to <code>-c</code>: that option expects the complete Snort configuration, not a rules file.</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c8',this)">Copy command</button>
+            <pre><code id="c8">sudo snort -q -A console -c /etc/snort/rules/local.rules</code></pre>
+        </div>
+
+        <h2>9. Generate Test Traffic from the Host Computer</h2>
+        <p>From the host computer, use its terminal or Command Prompt. Replace <code>&lt;ubuntu_ip&gt;</code> with the
+            Ubuntu VM's IP address:</p>
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode('c9',this)">Copy commands</button>
+            <pre><code id="c9">ping &lt;ubuntu_ip&gt;
+ssh admin@&lt;ubuntu_ip&gt;
+curl http://&lt;ubuntu_ip&gt;/etc/passwd</code></pre>
+        </div>
+        <ul>
+            <li><strong>ping:</strong> Generates ICMP echo requests. The ICMP rule should alert if Snort sees the
+                packets.</li>
+            <li><strong>ssh:</strong> Attempts a connection to TCP port 22. SSH must be installed and listening for a
+                connection to complete; the SYN packet can trigger the Snort rule.</li>
+            <li><strong>curl:</strong> Sends an HTTP request for the path <code>/etc/passwd</code>. This does not
+                directly read Ubuntu's local <code>/etc/passwd</code> file. An HTTP server must be running and
+                configured to serve that path for content to be returned. The rule only alerts if the request is plain
+                HTTP and visible to Snort.</li>
+        </ul>
+
+        <div class="note"><strong>Important troubleshooting notes</strong>
+            <ul>
+                <li>Snort must monitor the interface through which the host's traffic actually arrives. In a VM, check
+                    VMware network mode, routing, and interface selection.</li>
+                <li>Traffic sent to <code>127.0.0.1</code> stays on the same machine and will not normally appear on the
+                    VM's external network interface.</li>
+                <li>HTTPS encrypts the HTTP URI, so a basic network rule cannot inspect <code>/etc/passwd</code> inside
+                    encrypted HTTPS traffic.</li>
+                <li>If no alerts appear, verify that the local rules are included in <code>snort.conf</code>, the
+                    interface is correct, HOME_NET matches the Ubuntu network, and Snort is using the expected
+                    configuration.</li>
+                <li>Run these tests only on systems and networks you own or are authorized to assess.</li>
+            </ul>
+        </div>
+
+        <footer>Practical outcome: Snort is installed and configured to inspect selected network traffic and display
+            alerts for the demonstration ICMP, SSH, and HTTP patterns.</footer>
+    </main>
+    <script>
+        async function copyCode(id, button) {
+            const value = document.getElementById(id).innerText, original = button.innerText;
+            try { await navigator.clipboard.writeText(value); button.innerText = "Copied!"; }
+            catch (e) { const t = document.createElement("textarea"); t.value = value; t.style.position = "absolute"; t.style.left = "-9999px"; document.body.appendChild(t); t.select(); const ok = document.execCommand("copy"); t.remove(); button.innerText = ok ? "Copied!" : "Copy failed"; }
+            window.setTimeout(() => button.innerText = original, 1800);
+        }
+    </script>
+</body>
+
+</html>
