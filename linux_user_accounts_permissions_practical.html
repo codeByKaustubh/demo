@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux User Accounts and Permissions Practical</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#5d687a; --accent:#2457a7; --panel:#f3f6fb; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:32px 18px; background:#eef2f7; color:var(--ink);
+           font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:900px; margin:auto; padding:34px; background:#fff; border-radius:16px;
+           box-shadow:0 8px 30px rgba(20,35,60,.08); }
+    h1 { margin:0 0 8px; font-size:2rem; line-height:1.2; }
+    .subtitle { color:var(--muted); margin:0 0 28px; }
+    h2 { margin:30px 0 10px; color:var(--accent); font-size:1.2rem; }
+    p { margin:8px 0; }
+    pre { overflow-x:auto; padding:16px 18px; margin:10px 0 18px; border-radius:10px;
+          background:#111827; color:#e5edf8; font:14px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .note { padding:13px 16px; margin:18px 0; border-left:4px solid #d18b21;
+            background:#fff8e9; border-radius:6px; }
+    footer { margin-top:30px; color:var(--muted); font-size:.9rem; }
+    @media print { body { background:#fff; padding:0; } main { box-shadow:none; padding:0; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Linux User Accounts and Permissions</h1>
+  <p class="subtitle">Practical: Creating user accounts, passwords, groups, protected directories, and restricted sudo permissions.</p>
+
+  <h2>Aim</h2>
+  <p>To protect a personal computer system by creating user accounts with passwords and different types of user permissions for safety and security.</p>
+
+  <h2>1. Create Two Groups</h2>
+  <pre><code>sudo groupadd dev1
+sudo groupadd dev2</code></pre>
+
+  <h2>2. Create Users</h2>
+  <p>These commands create the users and prompt you to set their passwords and enter optional account details.</p>
+  <pre><code>sudo adduser dev1_user
+sudo adduser dev2_user</code></pre>
+
+  <h2>3. Add Each User to Its Group</h2>
+  <pre><code>sudo usermod -aG dev1 dev1_user
+sudo usermod -aG dev2 dev2_user</code></pre>
+
+  <h2>4. Create Protected Directories</h2>
+  <p>Create one directory for each development group, assign the group ownership, and allow access to the owner and group only.</p>
+  <pre><code>sudo mkdir /opt/dev1_files
+sudo mkdir /opt/dev2_files
+
+sudo chown :dev1 /opt/dev1_files
+sudo chown :dev2 /opt/dev2_files
+
+sudo chmod 770 /opt/dev1_files
+sudo chmod 770 /opt/dev2_files</code></pre>
+
+  <h2>5. Configure Group-Based sudo Permissions</h2>
+  <p>Open the sudoers configuration safely with <code>visudo</code>:</p>
+  <pre><code>sudo visudo</code></pre>
+  <p>Add these rules to the file:</p>
+  <pre><code>%dev1 ALL=(ALL) /usr/bin/apt, /usr/bin/apt-get
+%dev2 ALL=(ALL) /usr/bin/journalctl, /usr/bin/systemctl status *</code></pre>
+  <div class="note">
+    <strong>Important:</strong> Use <code>visudo</code> rather than editing <code>/etc/sudoers</code> directly. It checks the file for syntax errors before saving. These rules grant the listed command permissions to members of the corresponding groups.
+  </div>
+
+  <h2>6. Test Allowed and Denied Commands</h2>
+  <p><strong>Test as dev1_user:</strong></p>
+  <pre><code>su - dev1_user
+sudo apt update
+ls /opt/dev2_files
+exit</code></pre>
+
+  <p><strong>Test as dev2_user:</strong></p>
+  <pre><code>su - dev2_user
+sudo journalctl
+ls /opt/dev1_files
+exit</code></pre>
+
+  <div class="note">
+    <strong>Expected result:</strong> Each user should be able to access their own group directory, but should be denied access to the other group's directory. The sudo tests should also reflect the commands permitted by the sudoers rules. A denied directory listing may show “Permission denied.”
+  </div>
+
+  <footer>
+    Note: The original test command contained <code>su – dev2_use</code>. It has been corrected to <code>su - dev2_user</code> to match the account created in Step 2. Use a normal hyphen (-) in terminal commands.
+  </footer>
+</main>
+</body>
+</html>
